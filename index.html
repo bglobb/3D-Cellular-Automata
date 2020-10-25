@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="master.css">
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="txt">
+      <p>Click screen to lock pointer.<br>WASD to move.<br>Mouse/touchpad to turn.<br>Spacebar to (un)pause.<br>Arrow Keys to change simulation speed.<br><br>Lines 1-6 JS adjust game parameters.</p>
+    </div>
+    <div id=something>
+      <span id=WASD-container>
+        <div><span class=btn id=W>W</span></div>
+        <div><span class=btn id=A>A</span><span class=btn id=S>S</span><span class=btn id=D>D</span></div>
+      </span>
+      <span id=space-container>
+        <div><span class=long-btn id=space>Space</span></div>
+      </span>
+      <span id=arrow-container>
+        <div><span class=btn id=up>↑</span></div>
+        <div><span class=btn id=down>↓</span></div>
+      </span>
+    </div>
+    <script src="util.js" charset="utf-8"></script>
+    <script src="main.js" charset="utf-8"></script>
+  </body>
+</html>
