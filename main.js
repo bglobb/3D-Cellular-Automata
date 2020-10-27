@@ -1,6 +1,6 @@
-var height = 50;
-var width = 50;
-var depth = 50;
+var height = 30;
+var width = 30;
+var depth = 30;
 var percent_alive_at_gen0 = 0.4;
 var number_of_neighbors_to_stay_alive = [2, 3]; // 2 or 3 neighbors to stay alive.
 var number_of_neighbors_to_come_alive = [3];  // 3 neighbors to come alive.
