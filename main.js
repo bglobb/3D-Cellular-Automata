@@ -1,7 +1,7 @@
-var height = 30;
-var width = 30;
-var depth = 30;
-var percent_alive_at_gen0 = 0.4;
+var height = 20;
+var width = 20;
+var depth = 20;
+var percent_alive_at_gen0 = 0.01;
 var number_of_neighbors_to_stay_alive = [2, 3]; // 2 or 3 neighbors to stay alive.
 var number_of_neighbors_to_come_alive = [3];  // 3 neighbors to come alive.
 var iterations_per_update = 32;  // An integer which determines the simulation speed. The lower the faster. Lowest is 1.
@@ -64,13 +64,16 @@ onload = function() {
   c.height = h;
   camera = new Camera;
 
-  alive_cond = dead_cond = "false";
+  alive_cond = dead_cond = "";
   for (var i = 0; i<number_of_neighbors_to_stay_alive.length; i++) {
     alive_cond += "||sum=="+number_of_neighbors_to_stay_alive[i];
   }
   for (var i = 0; i<number_of_neighbors_to_come_alive.length; i++) {
     dead_cond += "||sum=="+number_of_neighbors_to_come_alive[i];
   }
+  alive_cond = alive_cond.slice(2);
+  dead_cond = dead_cond.slice(2);
+
   draw_vs = `
     precision highp float;
     attribute vec3 vert_pos;
@@ -84,18 +87,18 @@ onload = function() {
     uniform vec2 t_size;
     uniform float f;
     uniform float w_h;
-    vec3 proj3Dto2D(vec3 vp) {
+    vec4 proj3Dto2D(vec3 vp) {
       vec3 new = vp*u_matrix;
       float p = f/(new.z+f);
-      if (new.z >= 1.0) {
-        return vec3(new.x*p, -new.y*p*w_h, new.z*.00001);
+      if (new.z > 0.) {
+        return vec4(vec3(p, -p*w_h, .001)*new, 2);
       }
-      return vec3(new.x*p, -new.y*p*w_h, new.z-1.0);
+      return vec4(0);
     }
     void main() {
       if (texture2D(data, tex_idx).r == 1.0) {
         frag_color = col*dot(normal, u_matrix[2]);
-        gl_Position = vec4(proj3Dto2D(vert_pos-u_camera), 1.0);
+        gl_Position = proj3Dto2D(vert_pos-u_camera);
       }
     }
   `;
@@ -103,9 +106,9 @@ onload = function() {
     precision mediump float;
     varying vec3 frag_color;
     void main() {
-      gl_FragColor = vec4(frag_color, 1);
+      gl_FragColor = vec4(frag_color*.7+vec3(.3), 1);
     }
-  `
+  `;
   compute_vs = `
     precision mediump float;
     attribute vec2 vert_pos;
