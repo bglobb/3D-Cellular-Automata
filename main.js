@@ -1,7 +1,7 @@
-var height = 20;
-var width = 20;
-var depth = 20;
-var percent_alive_at_gen0 = 0.01;
+var height = 30;
+var width = 30;
+var depth = 30;
+var percent_alive_at_gen0 = 0.02;
 var number_of_neighbors_to_stay_alive = [2, 3]; // 2 or 3 neighbors to stay alive.
 var number_of_neighbors_to_come_alive = [3];  // 3 neighbors to come alive.
 var iterations_per_update = 32;  // An integer which determines the simulation speed. The lower the faster. Lowest is 1.
@@ -157,8 +157,8 @@ onload = function() {
       }
     }
   `
-  draw_prgm = program(draw_vs, draw_fs);
-  compute_prgm = program(compute_vs, compute_fs);
+  draw_prgm = loadProgram(draw_vs, draw_fs);
+  compute_prgm = loadProgram(compute_vs, compute_fs);
   send_to_program();
 
 
@@ -359,25 +359,6 @@ function loop() {
   frame++;
   requestAnimationFrame(loop);
 }
-
-
-
-
-
-function program(vs_source, fs_source) {
-  var vs = gl.createShader(gl.VERTEX_SHADER);
-  var fs = gl.createShader(gl.FRAGMENT_SHADER);
-  var prgm = gl.createProgram();
-  gl.shaderSource(vs, vs_source);
-  gl.shaderSource(fs, fs_source);
-  gl.compileShader(vs);
-  gl.compileShader(fs);
-  gl.attachShader(prgm, vs);
-  gl.attachShader(prgm, fs);
-  gl.linkProgram(prgm);
-  return prgm;
-}
-
 
 function bind_draw_attribs() {
   gl.viewport(0, 0, w, h);
