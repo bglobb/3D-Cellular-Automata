@@ -1,635 +1,584 @@
-var height = 30;
-var width = 30;
-var depth = 30;
-var percent_alive_at_gen0 = 0.02;
-var number_of_neighbors_to_stay_alive = [2, 3]; // 2 or 3 neighbors to stay alive.
-var number_of_neighbors_to_come_alive = [3];  // 3 neighbors to come alive.
-var iterations_per_update = 32;  // An integer which determines the simulation speed. The lower the faster. Lowest is 1.
-
-
-
-
-
-
-
-// To see the normal Conway's Game of Life, set depth to 1.
-
-// Height*width*depth exceeding 50*50*50 will cause a memory error. For good GPUs, this is a bottleneck since they can easily handle 50*50*50 (and a lot more) if not for a memory error. For most phones, it isn't.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var c, gl, draw_vs, draw_fs, compute_vs, compute_fs, w, h, draw_prgm, compute_prgm, draw_vertices, compute_vertices, t_vertices, draw_pal, compute_pal, draw_tal, compute_tal, cal, nal, draw_buffer, compute_buffer1, compute_buffer2, tex_in, tex_out, arr_in, arr_out, fb, tex_size, w_size, camera, down, paused, move, touched, alive_cond, dead_cond, mobile,swiping;
-
-
-
-onload = function() {
-  c = document.getElementById("canvas");
-  gl = canvas.getContext("webgl")||canvas.getContext("experimental-webgl");
+onload = () => {
+  canvas = document.querySelector('canvas');
+  gl = canvas.getContext('webgl2', {antialias: !true});
   gl.enable(gl.DEPTH_TEST);
-  [w, h] = [innerWidth, innerHeight];
-  paused = 0;
-  mobile = 0;
-  swiping = 0;
-  w_size = [height, width, depth];
-  generate_t_size();
-  generate_occupied();
-  generate_draw_vertices();
-  c.width = w;
-  c.height = h;
+
+  elements = {
+    ui: document.querySelector('.ui'),
+    fps: document.querySelector('#fps'),
+    spacing: document.querySelector("#spacing"),
+    simSpeed: document.querySelector('#simSpeed'),
+    iter: document.querySelector('#iter'),
+    radios: Array.from(document.querySelectorAll('input[type=radio]')),
+    base: document.querySelector('#base'),
+    stick: document.querySelector('#stick'),
+    info: document.querySelector('#info')
+  }
+
+  Array.from(document.forms).forEach(e => {e.onsubmit = x => false;});
+
+  if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
+      || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) {
+        elements.info.style.display = 'none';
+  } else {
+    elements.base.style.display = 'none';
+  }
+
+  world = /*Brave*/ new World;
   camera = new Camera;
 
-  alive_cond = dead_cond = "";
-  for (var i = 0; i<number_of_neighbors_to_stay_alive.length; i++) {
-    alive_cond += "||sum=="+number_of_neighbors_to_stay_alive[i];
+  stop = 0;
+
+  mobileShift = mobileAng = mobileRot = [0, 0];
+
+  elements.ui.ontouchmove = (e) => {
+    if (e.target===elements.ui) {
+      let temp = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
+      camera.rotate(.1*(temp[0]-mobileAng[0]), .1*(mobileAng[1]-temp[1]));
+      mobileAng = temp;
+    }
   }
-  for (var i = 0; i<number_of_neighbors_to_come_alive.length; i++) {
-    dead_cond += "||sum=="+number_of_neighbors_to_come_alive[i];
+
+  elements.ui.ontouchstart = (e) => {
+    if (e.target===elements.ui) {
+      mobileAng = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
+    }
   }
-  alive_cond = alive_cond.slice(2);
-  dead_cond = dead_cond.slice(2);
 
-  draw_vs = `
-    precision highp float;
-    attribute vec3 vert_pos;
-    attribute vec2 tex_idx;
-    attribute vec3 normal;
-    attribute vec3 col;
-    uniform sampler2D data;
-    varying vec3 frag_color;
-    uniform mat3 u_matrix;
-    uniform vec3 u_camera;
-    uniform vec2 t_size;
-    uniform float f;
-    uniform float w_h;
-    vec4 proj3Dto2D(vec3 vp) {
-      vec3 new = vp*u_matrix;
-      float p = f/(new.z+f);
-      if (new.z > 0.) {
-        return vec4(vec3(p, -p*w_h, .001)*new, 2);
-      }
-      return vec4(0);
+  elements.base.ontouchmove = (e) => {
+    e.preventDefault();
+    let [x, y] = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
+    let maxDist = elements.base.offsetWidth/2;
+    let dist = Math.sqrt((x-elements.stick.fixedPos[0])**2+(y-elements.stick.fixedPos[1])**2);
+    let r = Math.min(1, maxDist/dist);
+    elements.stick.style.left = elements.stick.fixedPos[0]+r*(x-elements.stick.fixedPos[0])+'px';
+    elements.stick.style.top = elements.stick.fixedPos[1]+r*(y-elements.stick.fixedPos[1])+'px';
+
+    mobileShift = [-r*(y-elements.stick.fixedPos[1])/maxDist, r*(x-elements.stick.fixedPos[0])/maxDist];
+  }
+
+  elements.base.ontouchstart = (e) => {
+    e.preventDefault();
+    let pos = elements.stick.getBoundingClientRect();
+    elements.stick.style.position = 'fixed';
+    elements.stick.fixedPos = [pos.x+elements.stick.offsetWidth/2, pos.y+elements.stick.offsetHeight/2];
+    let [x, y] = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
+    elements.stick.style.left = x+'px';
+    elements.stick.style.top = y+'px';
+
+    let maxDist = elements.base.offsetWidth/2;
+    mobileShift = [-(y-elements.stick.fixedPos[1])/maxDist, (x-elements.stick.fixedPos[0])/maxDist];
+  }
+
+  elements.base.ontouchend = (e) => {
+    e.preventDefault();
+    elements.stick.style.position = 'relative';
+    elements.stick.style.left = elements.stick.style.top = '50%';
+    mobileShift = [0, 0];
+  }
+
+  textures = {
+    draw: {
+      vertices: tex(new Uint8Array([0, 211, 0, 0,
+                                    10, 211, 0, 0,
+                                    11, 211, 0, 0,
+                                    11, 211, 0, 0,
+                                    1, 211, 0, 0,
+                                    0, 211, 0, 0,
+                                    100, 11, 0, 0,
+                                    101, 11, 0, 0,
+                                    110, 11, 0, 0,
+                                    111, 11, 0, 0,
+                                    101, 11, 0, 0,
+                                    110, 11, 0, 0,
+                                    0, 21, 0, 0,
+                                    1, 21, 0, 0,
+                                    101, 21, 0, 0,
+                                    101, 21, 0, 0,
+                                    100, 21, 0, 0,
+                                    0, 21, 0, 0,
+                                    10, 1, 0, 0,
+                                    11, 1, 0, 0,
+                                    110, 1, 0, 0,
+                                    111, 1, 0, 0,
+                                    11, 1, 0, 0,
+                                    110, 1, 0, 0,
+                                    0, 2, 0, 0,
+                                    110, 2, 0, 0,
+                                    10, 2, 0, 0,
+                                    0, 2, 0, 0,
+                                    110, 2, 0, 0,
+                                    100, 2, 0, 0,
+                                    1, 0, 0, 0,
+                                    11, 0, 0, 0,
+                                    101, 0, 0, 0,
+                                    111, 0, 0, 0,
+                                    11, 0, 0, 0,
+                                    101, 0, 0, 0]), 36, 1),
+      data: null
+    },
+    compute: {
+      data: null
     }
-    void main() {
-      if (texture2D(data, tex_idx).r == 1.0) {
-        frag_color = col*dot(normal, u_matrix[2]);
-        gl_Position = proj3Dto2D(vert_pos-u_camera);
-      }
-    }
-  `;
-  draw_fs = `
-    precision mediump float;
-    varying vec3 frag_color;
-    void main() {
-      gl_FragColor = vec4(frag_color*.7+vec3(.3), 1);
-    }
-  `;
-  compute_vs = `
-    precision mediump float;
-    attribute vec2 vert_pos;
-    attribute vec2 a_texcoord;
-    varying vec2 v_texcoord;
-    void main() {
-      v_texcoord = a_texcoord;
-      gl_Position = vec4(vert_pos, 0, 1);
-    }
-  `;
-  compute_fs = `
-    precision highp float;
-    varying vec2 v_texcoord;
-    uniform sampler2D data;
-    uniform vec3 w_size;
-    uniform vec2 t_size;
-    int w_to_t(vec3 w) {  // world coordinates to texture coordinates
-      float idx = w.z*w_size.x*w_size.y+w.y*w_size.x+w.x;
-      if (w.x<0.0||w.y<0.0||w.z<0.0||w.x>=w_size.x||w.y>=w_size.y||w.z>=w_size.z) {
-        return 0;
-      }
-      vec4 col = texture2D(data, vec2((mod(idx, t_size.x)+0.5)/t_size.x, (floor(idx/t_size.x)+0.5)/t_size.y));
-      if (length(col.rgb)>0.0) {
-        return 1;
-      }
-      return 0;
-    }
-    vec3 t_to_w(vec2 t) {  // texture coordinates to 3D world coordinates
-      float x = floor(t.x*t_size.x);
-      float y = floor(t.y*t_size.y);
-      float idx = y*t_size.x+x;
-      return vec3(mod(idx, w_size.x), mod(floor(idx/w_size.x), w_size.y), floor(idx/(w_size.x*w_size.y)));
-    }
-    void main() {
-      vec3 thiss = t_to_w(vec2(v_texcoord.x, 1.0-v_texcoord.y));
-      int sum = 0;
-      int state = w_to_t(thiss);
-      for (float i = 0.0; i < 27.0; i++) {
-        if (i != 13.0) {
-          sum += w_to_t(thiss+vec3(floor(i/9.0)-1.0, mod(floor(i/3.0), 3.0)-1.0, mod(i, 3.0)-1.0));
-        }
-      }
-      bool cond = state==1&&(${alive_cond})||state==0&&(${dead_cond});
-      if (cond) {
-        gl_FragColor = vec4(1, 0, 0, 1);
-      }
-    }
-  `
-  draw_prgm = loadProgram(draw_vs, draw_fs);
-  compute_prgm = loadProgram(compute_vs, compute_fs);
-  send_to_program();
+  };
 
+  vertices = {
+    draw: {
+      all: null,
+      surface: null,
+      xSect: null
+    },
+    compute: new Float32Array([
+      -1, -1,
+      -1, 1,
+      1, -1,
+      1, 1
+    ])
+  };
 
+  createPrograms();
 
-  draw_buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, draw_vertices, gl.STATIC_DRAW);
-  draw_pal = gl.getAttribLocation(draw_prgm, 'vert_pos');
-  gl.enableVertexAttribArray(draw_pal);
-
-  draw_tal = gl.getAttribLocation(draw_prgm, 'tex_idx');
-  gl.enableVertexAttribArray(draw_tal);
-
-  nal = gl.getAttribLocation(draw_prgm, 'normal');
-  gl.enableVertexAttribArray(nal);
-
-  cal = gl.getAttribLocation(draw_prgm, 'col');
-  gl.enableVertexAttribArray(cal);
-
-
-
-
-  compute_vertices = new Float32Array([
-    -1, -1,
-    -1, 1,
-    1, -1,
-    1, 1
-  ]);
-  t_vertices = new Float32Array([
-    0, 1,
-    0, 0,
-    1, 1,
-    1, 0
-  ]);
-
-
+  buffers = {
+    draw: {
+      all: null,
+      surface: null,
+      xSect: null
+    },
+    compute: gl.createBuffer()
+  }
 
   fb = gl.createFramebuffer();
-  gl.useProgram(compute_prgm);
-  compute_buffer1 = gl.createBuffer();
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, compute_buffer1);
-  gl.bufferData(gl.ARRAY_BUFFER, compute_vertices, gl.STATIC_DRAW);
-  compute_pal = gl.getAttribLocation(compute_prgm, 'vert_pos');
-  gl.enableVertexAttribArray(compute_pal);
+  setup();
+};
 
-  compute_buffer2 = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-  gl.bindBuffer(gl.ARRAY_BUFFER, compute_buffer2);
-  compute_tal = gl.getAttribLocation(compute_prgm, 'a_texcoord');
-  gl.bufferData(gl.ARRAY_BUFFER, t_vertices, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(compute_tal);
+let setup = (newBuffers=true) => {
+  createPrograms();
 
+  onresize = () => {
+    gl.useProgram(programs.draw);
+    resize();
+  };
+  dispatchEvent(new Event('resize'));
 
-
-
-
-
-  arr_in = [];
-  for (n of occupied.flat(2)) {
-    arr_in.push(n, 0, 0, 255);
+  if (newBuffers) {
+    updTex();
+    updVert();
+    updXSectVert();
+    updBuffer();
   }
-  arr_in = new Uint8Array(arr_in);
-  arr_out = new Uint8Array(tex_size[0]*tex_size[1]*4);
-  tex_in = texture(arr_in, tex_size[0], tex_size[1]);
-  tex_out = texture(arr_out, tex_size[0], tex_size[1]);
-  down = new Array(1000).fill(0);
 
-  document.getElementById("W").addEventListener("touchstart", function() {
-    down[87] = 1;
-  });
-  document.getElementById("W").addEventListener("touchend", function() {
-    down[87] = 0;
-  });
-  document.getElementById("A").addEventListener("touchstart", function() {
-    down[65] = 1;
-  });
-  document.getElementById("A").addEventListener("touchend", function() {
-    down[65] = 0;
-  });
-  document.getElementById("S").addEventListener("touchstart", function() {
-    down[83] = 1;
-  });
-  document.getElementById("S").addEventListener("touchend", function() {
-    down[83] = 0;
-  });
-  document.getElementById("D").addEventListener("touchstart", function() {
-    down[68] = 1;
-  });
-  document.getElementById("D").addEventListener("touchend", function() {
-    down[68] = 0;
-  });
-
-  document.addEventListener("touchend", function() {
-    swiping = 0;
-  });
-
-  document.getElementById("space").addEventListener("touchstart", function() {
-    paused = !paused;
-  });
-
-  document.addEventListener("touchstart", function() {
-    mobile = 1;
-  });
-
-  document.addEventListener("touchmove", function(e) {
-  try {
-  var i;
-  for (i = 0; i<e.touches.length; i++) {
-    if (e.touches[i].clientY/window.innerHeight < 0.8) {
-      break;
-    }
+  if (newBuffers) {
+    addVertices(vertices.draw.all, locations.draw.idx, true, buffers.draw.all, 1, gl.UNSIGNED_INT, 0, 0);
+    addVertices(vertices.draw.surface, locations.draw.idx, true, buffers.draw.surface, 1, gl.UNSIGNED_INT, 0, 0);
   }
-  if (!move||!swiping) {
-    move = [e.touches[i].clientX, e.touches[i].clientY];
+  gl.uniform3fv(locations.draw.wSize, world.size);
+  gl.uniform2fv(locations.draw.tSize, world.tSize);
+  gl.uniform1f(locations.draw.spacing, 1);
+
+  gl.useProgram(programs.compute);
+  if (newBuffers) {
+    addVertices(vertices.compute, locations.compute.vert, false, buffers.compute, 2, gl.FLOAT, 8, 0);
   }
-  swiping = 1;
-  [r1, r2] = [e.touches[i].clientX-move[0], move[1]-e.touches[i].clientY];
-  camera.rotate(0.5*r1, 0.5*r2);
-  move = [e.touches[i].clientX, e.touches[i].clientY];
-  touched=1;
-  } catch {}
-  });
+  gl.uniform3fv(locations.compute.wSize, world.size);
+  gl.uniform2fv(locations.compute.tSize, world.tSize);
 
-
-  document.addEventListener("keypress", function(e) {
-    if (e.which === 32) {
-      paused = !paused;
-    }
-  });
-  document.addEventListener("keydown", function(e) {
-       down[e.which] = 1;
-     if (e.which===37||e.which===40) {
-       iterations_per_update = Math.min(iterations_per_update*2, 128);
-     } else if (e.which===38||e.which===39) {
-       iterations_per_update = Math.max(iterations_per_update/2, 1);
-     }
-  });
-  document.getElementById("up").addEventListener("touchstart", function() {
-    iterations_per_update = Math.max(Math.floor(iterations_per_update/2), 1);
-  });
-
-  document.getElementById("down").addEventListener("touchstart", function() {
-    iterations_per_update = Math.min(Math.floor(iterations_per_update*2), 128);
-  });
-
-  document.addEventListener("keyup", function(e) {
-       down[e.which] = 0;
-  });
-  document.addEventListener("mousemove", function(e) {
-      if (!mobile) {
-        camera.rotate(0.1*e.movementX, -0.1*e.movementY);
-      }
-  }, false);
-  c.requestPointerLock = c.requestPointerLock||c.mozRequestPointerLock;
-  c.exitPointerLock = c.exitPointerLock||c.mozExitPointerLock;
-  document.addEventListener("click", function() {
-    try {
-       canvas.requestPointerLock();
-    } catch {}
-  });
-  frame = 1;
+  t = performance.now();
+  elements.iter.innerText = 1;
   requestAnimationFrame(loop);
+  setTimeout(compute(), 1000/world.simSpeed);
 }
 
+let loop = () => {
+  if (!stop) {
+    draw();
+    tn = performance.now();
+    camera.fps = Math.round(1000/(tn-t));
+    elements.fps.innerText = camera.fps;
+    t = tn;
+    // camera.speedFactor = 60/fps;
+    requestAnimationFrame(loop);
+  }
+};
 
 
 
-
-function loop() {
+let draw = () => {
+  bindDrawAttribs();
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, tex_in);
+  gl.bindTexture(gl.TEXTURE_2D, textures.draw.vertices);
+  gl.uniform1i(locations.draw.vertices, 0);
   gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, tex_out);
+  gl.bindTexture(gl.TEXTURE_2D, textures.draw.data);
+  gl.uniform1i(locations.draw.data, 1);
 
+  camera.shift(mobileShift[0], mobileShift[1]);
+  camera.update(locations.draw.matrix, locations.draw.camera, locations.draw.f, locations.draw.forw, 1);
+  gl.uniform1f(locations.draw.spacing, 1*elements.spacing.value);
+  gl.uniform1f(locations.draw.aspect, canvas.width/canvas.height);
 
-  bind_draw_attribs();
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.drawArrays(gl.TRIANGLES, 0, draw_vertices.length/11);
-
-  if (!paused&&(frame)%iterations_per_update === 0) {  // Updates world
-    bind_compute_attribs();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex_out, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.deleteTexture(tex_in);
-    tex_in = tex_out;
-    tex_out = texture(arr_out, tex_size[0], tex_size[1]);
+  if (world.xSect[1]===1000000) {
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.draw.all.length);
+  } else if (world.xSect[1]===1000001) {
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.draw.surface.length);
+  } else {
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.draw.xSect.length);
   }
-
-
-  camera.shift(down[87]-down[83], down[68]-down[65]);
-  send_to_program();
-
-  frame++;
-  requestAnimationFrame(loop);
 }
 
-function bind_draw_attribs() {
-  gl.viewport(0, 0, w, h);
-  gl.useProgram(draw_prgm);
-  gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
-  gl.vertexAttribPointer(
-    draw_pal,
-    3,  // Size
-    gl.FLOAT,
-    false,
-    11*Float32Array.BYTES_PER_ELEMENT,  // stride
-    0  // Offset
-  );
 
-  gl.vertexAttribPointer(
-    draw_tal,
-    2,  // Size
-    gl.FLOAT,
-    false,
-    11*Float32Array.BYTES_PER_ELEMENT,  // stride
-    6*Float32Array.BYTES_PER_ELEMENT  // Offset
-  );
 
-  gl.vertexAttribPointer(
-    nal,
-    3,  // Size
-    gl.FLOAT,
-    false,
-    11*Float32Array.BYTES_PER_ELEMENT,  // stride
-    3*Float32Array.BYTES_PER_ELEMENT  // Offset
-  );
+let compute = (iter=2) => {
+  return () => {
+    if (!world.paused) {
+      bindComputeAttribs();
 
-  gl.vertexAttribPointer(
-    cal,
-    3,  // Size
-    gl.FLOAT,
-    false,
-    11*Float32Array.BYTES_PER_ELEMENT,  // stride
-    8*Float32Array.BYTES_PER_ELEMENT  // Offset
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, textures.draw.data);
+      gl.uniform1i(locations.compute.data, 0);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textures.compute.data, 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.deleteTexture(textures.draw.data);
+      textures.draw.data = textures.compute.data;
+      textures.compute.data = tex(world.arrOut, world.tSize[0], world.tSize[1]);
+
+      elements.iter.innerText = iter;
+    }
+    if (!stop) {
+      setTimeout(compute(iter+1), 1000/world.simSpeed);
+    }
+  };
+}
+
+
+
+let bindDrawAttribs = () => {
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.useProgram(programs.draw);
+  if (world.xSect[1]===1000000) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.all);
+  } else if (world.xSect[1]===1000001) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.surface);
+  } else {
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.xSect);
+  }
+  gl.vertexAttribIPointer(
+    locations.draw.idx,
+    1,  // size
+    gl.UNSIGNED_INT,
+    0,  // stride
+    0  // offset
   );
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 }
 
-function bind_compute_attribs() {
-  gl.viewport(0, 0, tex_size[0], tex_size[1]);
-  gl.useProgram(compute_prgm);
-  gl.bindBuffer(gl.ARRAY_BUFFER, compute_buffer1);
+
+
+let bindComputeAttribs = () => {
+  gl.viewport(0, 0, world.tSize[0], world.tSize[1]);
+  gl.useProgram(programs.compute);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.compute);
   gl.vertexAttribPointer(
-    compute_pal,
+    locations.compute.vert,
     2,
     gl.FLOAT,
     false,
-    2*Float32Array.BYTES_PER_ELEMENT,  // Size of individual vertex
-    0  // Offset
-  );
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-  gl.bindBuffer(gl.ARRAY_BUFFER, compute_buffer2);
-  gl.vertexAttribPointer(
-    compute_tal,
-    2,
-    gl.FLOAT,
-    false,
-    2*Float32Array.BYTES_PER_ELEMENT,  // Size of individual vertex
-    0  // Offset
+    8,  // size
+    0  // offset
   );
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 }
 
 
-function texture(data, width, height) {
-  var tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
-  return tex;
+
+let updTex = () => {
+  try {
+    gl.deleteTexture(textures.draw.data);
+    gl.deleteTexture(textures.compute.data)
+  } catch (e) { }
+  textures.draw.data = tex(world.data, world.tSize[0], world.tSize[1]);
+  textures.compute.data = tex(world.arrOut, world.tSize[0], world.tSize[1]);
 }
 
 
 
-
-
-function send_to_program() {
-  gl.useProgram(draw_prgm);
-  gl.uniform3f(gl.getUniformLocation(draw_prgm, "w_size"), w_size[2], w_size[1], w_size[0]);
-  gl.uniform2fv(gl.getUniformLocation(draw_prgm, "t_size"), tex_size);
-  gl.uniform3fv(gl.getUniformLocation(draw_prgm, "u_camera"), camera.pos);
-  gl.uniformMatrix3fv(gl.getUniformLocation(draw_prgm, "u_matrix"), false, transpose(inverse(camera.axes)).flat(1));
-  gl.uniform1f(gl.getUniformLocation(draw_prgm, "f"), camera.f);
-  gl.uniform1f(gl.getUniformLocation(draw_prgm, "w_h"), w/h);
-  gl.useProgram(compute_prgm);
-  gl.uniform3f(gl.getUniformLocation(compute_prgm, "w_size"), w_size[2], w_size[1], w_size[0]);
-  gl.uniform2fv(gl.getUniformLocation(compute_prgm, "t_size"), tex_size);
-}
-
-
-
-
-
-function generate_draw_vertices() {
-  draw_vertices = [];
-  var row = 0;
-  var column = 0;
-  var c, r;
-  var red, green, blue;
-  for (var z = 0; z < w_size[0]; z++) {
-    z1 = z+1;
-    blue = z/w_size[0];
-    for (var y = 0; y < w_size[1]; y++) {
-      y1 = y+1;
-      green = y/w_size[1];
-      for (var x = 0; x < w_size[2]; x++) {
-        x1 = x+1;
-        red = x/w_size[2];
-        r = (row+0.5)/tex_size[1];
-        c = (column+0.5)/tex_size[0];
-        draw_vertices.push(x, y, z, 1, 0, 0, c, r, red, green, blue,
-                           x, y, z1, 1, 0, 0, c, r, red, green, blue,
-                           x, y1, z, 1, 0, 0, c, r, red, green, blue,
-                           x, y1, z1, 1, 0, 0, c, r, red, green, blue,
-                           x, y, z1, 1, 0, 0, c, r, red, green, blue,
-                           x, y1, z, 1, 0, 0, c, r, red, green, blue,
-                           x1, y, z, -1, 0, 0, c, r, red, green, blue,
-                           x1, y, z1, -1, 0, 0, c, r, red, green, blue,
-                           x1, y1, z, -1, 0, 0, c, r, red, green, blue,
-                           x1, y1, z1, -1, 0, 0, c, r, red, green, blue,
-                           x1, y, z1, -1, 0, 0, c, r, red, green, blue,
-                           x1, y1, z, -1, 0, 0, c, r, red, green, blue,
-                           x, y, z, 0, 1, 0, c, r, red, green, blue,
-                           x, y, z1, 0, 1, 0, c, r, red, green, blue,
-                           x1, y, z, 0, 1, 0, c, r, red, green, blue,
-                           x1, y, z1, 0, 1, 0, c, r, red, green, blue,
-                           x, y, z1, 0, 1, 0, c, r, red, green, blue,
-                           x1, y, z, 0, 1, 0, c, r, red, green, blue,
-                           x, y1, z, 0, -1, 0, c, r, red, green, blue,
-                           x, y1, z1, 0, -1, 0, c, r, red, green, blue,
-                           x1, y1, z, 0, -1, 0, c, r, red, green, blue,
-                           x1, y1, z1, 0, -1, 0, c, r, red, green, blue,
-                           x, y1, z1, 0, -1, 0, c, r, red, green, blue,
-                           x1, y1, z, 0, -1, 0, c, r, red, green, blue,
-                           x, y, z, 0, 0, 1, c, r, red, green, blue,
-                           x, y1, z, 0, 0, 1, c, r, red, green, blue,
-                           x1, y, z, 0, 0, 1, c, r, red, green, blue,
-                           x1, y1, z, 0, 0, 1, c, r, red, green, blue,
-                           x, y1, z, 0, 0, 1, c, r, red, green, blue,
-                           x1, y, z, 0, 0, 1, c, r, red, green, blue,
-                           x, y, z1, 0, 0, -1, c, r, red, green, blue,
-                           x, y1, z1, 0, 0, -1, c, r, red, green, blue,
-                           x1, y, z1, 0, 0, -1, c, r, red, green, blue,
-                           x1, y1, z1, 0, 0, -1, c, r, red, green, blue,
-                           x, y1, z1, 0, 0, -1, c, r, red, green, blue,
-                           x1, y, z1, 0, 0, -1, c, r, red, green, blue);  // each row is vertex coordinate (vec3), negative normal vector (vec3), a texture id (vec2), and color (vec3)
-        column = (column+1)%tex_size[0];
-        row += !column;
-      }
+let updVert = () => {
+  vertices.draw.all = new Uint32Array([...Array(36*world.size[0]*world.size[1]*world.size[2]).keys()]);
+  vertices.draw.surface = [];
+  let temp = Array(36).fill(0);
+  for (let z = 0; z < world.size[2]; z++) {
+    for (let y = 0; y < world.size[1]; y++) {
+      let idx0 = 36*(z*world.size[1]*world.size[0]+y*world.size[0]);
+      let idx1 = idx0+36*(world.size[0]-1);
+      vertices.draw.surface.push(...temp.map((n, i) => idx0+i), ...temp.map((n, i) => idx1+i));
     }
   }
-  draw_vertices = new Float32Array(draw_vertices);
-}
-
-
-
-
-
-function generate_t_size() {
-  var c = w_size[0]*w_size[1]*w_size[2];
-  for (var i = Math.round(Math.sqrt(c)); i > 0; i--) {
-    var n = c/i;
-    if (Number.isInteger(n)) {
-      tex_size = [i, n];
-      break;
+  for (let z = 0; z < world.size[2]; z++) {
+    for (let x = 1; x < world.size[0]-1; x++) {
+      let idx0 = 36*(z*world.size[1]*world.size[0]+x);
+      let idx1 = idx0+36*((world.size[1]-1)*world.size[0]);
+      vertices.draw.surface.push(...temp.map((n, i) => idx0+i), ...temp.map((n, i) => idx1+i));
     }
   }
-}
-
-
-
-
-
-function generate_occupied() {
-  occupied = [];
-  for (var z = 0; z < w_size[0]; z++) {
-    occupied.push([]);
-    for (var y = 0; y < w_size[1]; y++) {
-      occupied[z].push([]);
-      for (var x = 0; x < w_size[2]; x++) {
-        occupied[z][y].push(Math.random()<percent_alive_at_gen0?255:0);
-      }
+  for (let y = 1; y < world.size[1]-1; y++) {
+    for (let x = 1; x < world.size[0]-1; x++) {
+      let idx0 = 36*(y*world.size[0]+x);
+      let idx1 = idx0+36*((world.size[2]-1)*world.size[1]*world.size[0]);
+      vertices.draw.surface.push(...temp.map((n, i) => idx0+i), ...temp.map((n, i) => idx1+i));
     }
   }
+  vertices.draw.surface = new Uint32Array(vertices.draw.surface);
 }
 
 
 
-
-
-function inverse(mat3) {
-  var minors = [[], [], []];
-  var cofactors = [[], [], []];
-  var adjugate = [[], [], []];
-  var count = [0, 1, 2];
-  for (i of count) {
-    for (j of count) {
-      var vals = [];
-      for (k of count.filter(n => n!==i)) {
-        for (l of count.filter(n => n!==j)) {
-          vals.push(mat3[k][l]);
+let updXSectVert = () => {
+  let temp = Array(36).fill(0);
+  vertices.draw.xSect = [];
+  if (world.xSect[1] < 1000000) {
+    if (world.xSect[0]===0) {
+      for (let z = 0; z < world.size[2]; z++) {
+        for (let y = 0; y < world.size[1]; y++) {
+          let idx = 36*(z*world.size[1]*world.size[0]+y*world.size[0]+world.xSect[1]);
+          vertices.draw.xSect.push(...temp.map((n, i) => idx+i));
         }
       }
-      minors[i][j] = vals[0]*vals[3]-vals[1]*vals[2];
-      cofactors[i][j] = minors[i][j]*(i+j&1?-1:1);
-      adjugate[j][i] = cofactors[i][j];
+    } else if (world.xSect[0]===1) {
+      for (let z = 0; z < world.size[2]; z++) {
+        for (let x = 0; x < world.size[0]; x++) {
+          let idx = 36*(z*world.size[1]*world.size[0]+world.xSect[1]*world.size[0]+x);
+          vertices.draw.xSect.push(...temp.map((n, i) => idx+i));
+        }
+      }
+    } else {
+      for (let y = 0; y < world.size[1]; y++) {
+        for (let x = 0; x < world.size[0]; x++) {
+          let idx = 36*(world.xSect[1]*world.size[1]*world.size[0]+y*world.size[0]+x);
+          vertices.draw.xSect.push(...temp.map((n, i) => idx+i));
+        }
+      }
     }
   }
-  return adjugate.map(arr => arr.map(n => n/(mat3[0][0]*minors[0][0]-mat3[0][1]*minors[0][1]+mat3[0][2]*minors[0][2])));
+  vertices.draw.xSect = new Uint32Array(vertices.draw.xSect);
+  try {
+    gl.deleteBuffer(buffers.draw.xSect);
+  } catch (e) { }
+  buffers.draw.xSect = gl.createBuffer();
+  addVertices(vertices.draw.xSect, locations.draw.idx, true, buffers.draw.xSect, 1, gl.UNSIGNED_INT, 0, 0);
 }
 
 
 
-
-
-function transpose(mat3) {
-  return [
-    [mat3[0][0], mat3[1][0], mat3[2][0]],
-    [mat3[0][1], mat3[1][1], mat3[2][1]],
-    [mat3[0][2], mat3[1][2], mat3[2][2]]
-  ];
+let updBuffer = () => {
+  try {
+    gl.deleteBuffer(buffers.draw.all);
+    gl.deleteBuffer(buffers.draw.surface);
+  } catch (e) { }
+  buffers.draw.all = gl.createBuffer();
+  buffers.draw.surface = gl.createBuffer();
 }
 
 
 
+let createPrograms = () => {
+  try {
+    gl.deleteProgram(programs.draw);
+    gl.deleteProgram(programs.compute);
+  } catch (e) { }
+  shaders = {
+    draw: {
+      vertex: `#version 300 es
+        precision highp float;
 
+        in uint idx;
 
-class Camera {
-  constructor(pos=[-1.2*w_size[2]-10, 0.5*w_size[1], 0.5*w_size[0]], axes=[[0, -1, 0], [0, 0, -1], [1, 0, 0]], dir=[[-Math.PI/2, 0], [0, -Math.PI/2], [0, 0]], f=1.5, rot_speed=.02) {
-    this.pos = pos;
-    this.axes = axes;
-    this.dir = dir;
-    this.f = f;
-    this.rot_speed = rot_speed;
-  }
-  shift(forw, right) {
-    this.pos = this.add(this.pos, this.add(this.mult(forw, this.axes[2]), this.mult(right, this.axes[0])).map(n => 0.3*n));
-  }
-  add(vec1, vec2) {
-    var out = [];
-    for (var i = 0; i < vec1.length; i++) {
-      out.push(vec1[i]+vec2[i]);
+        out vec4 col;
+
+        uniform sampler2D vertices;
+        uniform sampler2D data;
+
+        uniform vec3 wSize;
+        uniform vec2 tSize;
+
+        uniform float aspect;
+
+        uniform mat3 matrix;
+        uniform vec3 camera;
+        uniform vec3 forw;
+        uniform float f;
+
+        uniform float spacing;
+
+        bool alive(uint i) {
+          uint temp = i/uint(36);
+          uint d1 = uint(tSize.x);
+          uint y = temp/d1;
+          uint x = temp-y*d1;
+          vec2 coor = (vec2(x, y)+.5)/tSize;
+          float state = texture(data, coor).r;
+          return state > 0.;
+        }
+
+        vec3 idxToCoor(uint i) {
+          uint temp = i/uint(36);
+          uint d1 = uint(wSize.x*wSize.y);
+          uint z = temp/d1;
+          temp -= z*d1;
+          uint d2 = uint(wSize.x);
+          uint y = temp/d2;
+          uint x = temp-y*d2;
+          return vec3(x, y, z);
+        }
+
+        vec4 idxToTex(uint i) {
+          uint divisor = uint(36);
+          uint rem = i-divisor*(i/divisor);
+          float normalized = (float(rem)+.5)/36.;
+          vec2 coor = vec2(normalized, .5);
+          vec2 tex = texture(vertices, coor).rg*256.;
+          return vec4(tex.rg, 0, 1);
+        }
+
+        vec3 texToPos(float r) {
+          int temp = int(round(r));
+          int x = temp/100;
+          temp -= 100*x;
+          int y = temp/10;
+          int z = temp-10*y;
+          return vec3(x, y, z);
+        }
+
+        vec3 texToNorm(float g) {
+          return texToPos(g)-1.;
+        }
+
+        vec4 proj3Dto2D(vec3 vp) {
+          vec3 new = vp*matrix;
+          float p = f/(new.z+f);
+          return vec4(p*new.x, p*new.y*-aspect, (new.z-1.)*.001-1., 1); // If returnVal.z not in [-1,1], vertex is clipped. Given this, I did the operations to clip if z<1.
+        }
+
+        void main() {
+          vec3 offset = idxToCoor(idx);
+          if (alive(idx)) {
+            vec2 tex = idxToTex(idx).rg;
+            vec3 v = texToPos(tex.r);
+            vec3 n = texToNorm(tex.g);
+
+            vec3 pos = spacing*(offset-wSize/2.)+v-camera;
+            vec3 shade;
+            int count = int(round(dot(v, vec3(1))));
+            if (count == 0 || count == 2) {
+              shade = vec3(255, 215, 0)/255.;
+            } else {
+              shade = vec3(65, 105, 225)/255.;
+            }
+            col = vec4(shade*(max(0., dot(n, forw)*.5)+.5), 1);
+            gl_Position = proj3Dto2D(pos);
+          }
+        }`,
+      fragment: `#version 300 es
+        precision lowp float;
+
+        in vec4 col;
+
+        out vec4 fragCol;
+
+        void main() {
+          fragCol = col;
+        }`
+    },
+    compute: {
+      vertex: `#version 300 es
+        precision highp float;
+
+        in vec2 vert;
+
+        out vec2 texPos;
+
+        void main() {
+          texPos = 0.5*(vert*vec2(1, -1)+1.0);
+          gl_Position = vec4(vert, 0, 1);
+        }`,
+      fragment: `#version 300 es
+        precision highp float;
+
+        in vec2 texPos;
+
+        out vec4 fragCol;
+
+        uniform vec3 wSize;
+        uniform vec2 tSize;
+        uniform sampler2D data;
+
+        int wToT(vec3 w) {  // world coordinates to texture coordinates
+          float idx = w.z*wSize.x*wSize.y+w.y*wSize.x+w.x;
+          if (w.x<0.0||w.y<0.0||w.z<0.0||w.x>=wSize.x||w.y>=wSize.y||w.z>=wSize.z) {
+            return 0;
+          }
+          vec4 col = texture(data, vec2((mod(idx, tSize.x)+0.5)/tSize.x, (floor(idx/tSize.x)+0.5)/tSize.y));
+          if (length(col.rgb)>0.0) {
+            return 1;
+          }
+          return 0;
+        }
+
+        vec3 tToW(vec2 t) {  // texture coordinates to 3D world coordinates
+          float x = floor(t.x*tSize.x);
+          float y = floor(t.y*tSize.y);
+          float idx = y*tSize.x+x;
+          return vec3(mod(idx, wSize.x), mod(floor(idx/wSize.x), wSize.y), floor(idx/(wSize.x*wSize.y)));
+        }
+
+        void main() {
+          vec3 thiss = tToW(vec2(texPos.x, 1.0-texPos.y));
+          int sum = 0;
+          int state = wToT(thiss);
+          for (float i = 0.0; i < 27.0; i++) {
+            if (i != 13.0) {
+              sum += wToT(thiss+vec3(floor(i/9.0)-1.0, mod(floor(i/3.0), 3.0)-1.0, mod(i, 3.0)-1.0));
+            }
+          }
+          bool cond = state==1&&(${world.aliveCond})||state==0&&(${world.deadCond});
+          if (cond) {
+            fragCol = vec4(1, 0, 0, 0);
+          }
+        }`
     }
-    return out;
-  }
-  mult(scal, vec) {
-    return vec.map(n => scal*n);
-  }
-  rotate(ds, dt) {
-    this.dir[0][0] -= ds*this.rot_speed;
-    this.dir[2][0] -= ds*this.rot_speed;
-    this.dir[1][0] -= ds*this.rot_speed;
-    var cosv0 = Math.cos(this.dir[0][1]);
-    var cosv2 = Math.cos(this.dir[2][1]);
-    var cosv1 = Math.cos(this.dir[1][1]);
-    this.axes[0] = [cosv0*Math.cos(this.dir[0][0]), cosv0*Math.sin(this.dir[0][0]), Math.sin(this.dir[0][1])];
-    this.axes[2] = [cosv2*Math.cos(this.dir[2][0]), cosv2*Math.sin(this.dir[2][0]), Math.sin(this.dir[2][1])];
-    this.axes[1] = [cosv1*Math.cos(this.dir[1][0]), cosv1*Math.sin(this.dir[1][0]), Math.sin(this.dir[1][1])];
-    this.dir[1][1] = Math.min(0, Math.max(-Math.PI, this.dir[1][1]+dt*this.rot_speed));
-    this.dir[2][1] = Math.min(Math.PI/2, Math.max(-Math.PI/2, this.dir[2][1]+dt*this.rot_speed));
-    cosv1 = Math.cos(this.dir[1][1]);
-    cosv2 = Math.cos(this.dir[2][1]);
-    this.axes[1] = [cosv1*Math.cos(this.dir[1][0]), cosv1*Math.sin(this.dir[1][0]), Math.sin(this.dir[1][1])];
-    this.axes[2] = [cosv2*Math.cos(this.dir[2][0]), cosv2*Math.sin(this.dir[2][0]), Math.sin(this.dir[2][1])];
-  }
+  };
+
+  programs = {
+    draw: loadProgram(shaders.draw.vertex, shaders.draw.fragment),
+    compute: loadProgram(shaders.compute.vertex, shaders.compute.fragment)
+  };
+
+  locations = {
+    draw: {
+      aspect: gl.getUniformLocation(programs.draw, 'aspect'),
+      vertices: gl.getUniformLocation(programs.draw, 'vertices'),
+      data: gl.getUniformLocation(programs.draw, 'data'),
+      wSize: gl.getUniformLocation(programs.draw, 'wSize'),
+      tSize: gl.getUniformLocation(programs.draw, 'tSize'),
+      matrix: gl.getUniformLocation(programs.draw, 'matrix'),
+      camera: gl.getUniformLocation(programs.draw, 'camera'),
+      forw: gl.getUniformLocation(programs.draw, 'forw'),
+      f: gl.getUniformLocation(programs.draw, 'f'),
+      spacing: gl.getUniformLocation(programs.draw, 'spacing'),
+
+      idx: gl.getAttribLocation(programs.draw, 'idx')
+    },
+    compute: {
+      data: gl.getUniformLocation(programs.compute, 'data'),
+      wSize: gl.getUniformLocation(programs.compute, 'wSize'),
+      tSize: gl.getUniformLocation(programs.compute, 'tSize'),
+
+      vert: gl.getAttribLocation(programs.compute, 'vert')
+    }
+  };
 }

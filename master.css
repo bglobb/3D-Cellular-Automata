@@ -1,65 +1,54 @@
-* {
-  -moz-user-select: -moz-none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-
-}
-
 body {
   margin: 0;
   overflow: hidden;
 }
 
-#txt {
-  color: white;
+.ui {
   position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 0.7em;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  margin: 8px;
+  z-index: 20;
+  color: rgb(31, 255, 31);
+  font-family: "Lucida Console", Courier, monospace;
+  -webkit-user-select: none;
 }
 
-p {
-  margin: 0;
-}
-
-.btn {
-  border: thick solid white;
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-}
-
-.long-btn {
-  border: thick solid white;
-  display: inline-block;
-  width: 120px;
-  height: 40px;
-}
-
-#something {
-  color: white;
-  text-align: center;
+.params {
   position: absolute;
   bottom: 0;
-  width: 100%;
+  right: 0;
 }
 
-#WASD-container {
-  margin: 0;
-  text-align: center;
-  float: left;
+input[type=number] {
+  width: 7ch;
 }
 
-#space-container {
-  margin: 0;
-  text-align: center;
-  float: left;
+#base {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 0;
 }
 
-#arrow-container {
-  margin: 0;
-  text-align: center;
-  float: right;
+#stick {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  background-color: rgb(31, 255, 31);
+  position: relative;
+  left: 50%;
+  top: 50%;
+  margin: -37.5px 0 0 -37.5px;
+}
+
+.info-box {
+  background-color: rgba(127, 127, 127, .75);
+  padding: 8px;
+  margin-top: 8px;
+}
+
+button {
+  font-family: "Lucida Console", Courier, monospace;
 }
