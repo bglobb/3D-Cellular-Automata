@@ -16,9 +16,11 @@ onload = () => {
   }
 
   Array.from(document.forms).forEach(e => {e.onsubmit = x => false;});
+  let mobile = 0;
 
   if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
       || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) {
+        mobile = 1;
         elements.info.style.display = 'none';
   } else {
     elements.base.style.display = 'none';
@@ -86,36 +88,18 @@ onload = () => {
                                     11, 211, 0, 0,
                                     1, 211, 0, 0,
                                     0, 211, 0, 0,
-                                    100, 11, 0, 0,
-                                    101, 11, 0, 0,
-                                    110, 11, 0, 0,
-                                    111, 11, 0, 0,
-                                    101, 11, 0, 0,
-                                    110, 11, 0, 0,
-                                    0, 21, 0, 0,
-                                    1, 21, 0, 0,
-                                    101, 21, 0, 0,
-                                    101, 21, 0, 0,
-                                    100, 21, 0, 0,
-                                    0, 21, 0, 0,
-                                    10, 1, 0, 0,
-                                    11, 1, 0, 0,
-                                    110, 1, 0, 0,
-                                    111, 1, 0, 0,
-                                    11, 1, 0, 0,
-                                    110, 1, 0, 0,
-                                    0, 2, 0, 0,
-                                    110, 2, 0, 0,
-                                    10, 2, 0, 0,
-                                    0, 2, 0, 0,
-                                    110, 2, 0, 0,
-                                    100, 2, 0, 0,
-                                    1, 0, 0, 0,
-                                    11, 0, 0, 0,
-                                    101, 0, 0, 0,
-                                    111, 0, 0, 0,
-                                    11, 0, 0, 0,
-                                    101, 0, 0, 0]), 36, 1),
+                                    0, 121, 0, 0,
+                                    1, 121, 0, 0,
+                                    101, 121, 0, 0,
+                                    101, 121, 0, 0,
+                                    100, 121, 0, 0,
+                                    0, 121, 0, 0,
+                                    0, 112, 0, 0,
+                                    110, 112, 0, 0,
+                                    10, 112, 0, 0,
+                                    0, 112, 0, 0,
+                                    110, 112, 0, 0,
+                                    100, 112, 0, 0]), 18, 1),
       data: null
     },
     compute: {
@@ -152,6 +136,8 @@ onload = () => {
 
   setup();
 };
+
+
 
 let setup = (newBuffers=true) => {
   createPrograms();
@@ -190,6 +176,8 @@ let setup = (newBuffers=true) => {
   setTimeout(compute(), 1000/world.simSpeed);
 }
 
+
+
 let loop = () => {
   if (!stop) {
     draw();
@@ -215,7 +203,7 @@ let draw = () => {
   gl.uniform1i(locations.draw.data, 1);
 
   camera.shift(mobileShift[0], mobileShift[1]);
-  camera.update(locations.draw.matrix, locations.draw.camera, locations.draw.f, locations.draw.forw, 1);
+  camera.update(locations.draw.matrix, locations.draw.camera, locations.draw.f, 1);
   gl.uniform1f(locations.draw.spacing, 1*elements.spacing.value);
   gl.uniform1f(locations.draw.aspect, canvas.width/canvas.height);
 
@@ -310,27 +298,27 @@ let updTex = () => {
 
 
 let updVert = () => {
-  vertices.draw.all = new Uint32Array([...Array(36*world.size[0]*world.size[1]*world.size[2]).keys()]);
+  vertices.draw.all = new Uint32Array([...Array(18*world.size[0]*world.size[1]*world.size[2]).keys()]);
   vertices.draw.surface = [];
-  let temp = Array(36).fill(0);
+  let temp = Array(18).fill(0);
   for (let z = 0; z < world.size[2]; z++) {
     for (let y = 0; y < world.size[1]; y++) {
-      let idx0 = 36*(z*world.size[1]*world.size[0]+y*world.size[0]);
-      let idx1 = idx0+36*(world.size[0]-1);
+      let idx0 = 18*(z*world.size[1]*world.size[0]+y*world.size[0]);
+      let idx1 = idx0+18*(world.size[0]-1);
       vertices.draw.surface.push(...temp.map((n, i) => idx0+i), ...temp.map((n, i) => idx1+i));
     }
   }
   for (let z = 0; z < world.size[2]; z++) {
     for (let x = 1; x < world.size[0]-1; x++) {
-      let idx0 = 36*(z*world.size[1]*world.size[0]+x);
-      let idx1 = idx0+36*((world.size[1]-1)*world.size[0]);
+      let idx0 = 18*(z*world.size[1]*world.size[0]+x);
+      let idx1 = idx0+18*((world.size[1]-1)*world.size[0]);
       vertices.draw.surface.push(...temp.map((n, i) => idx0+i), ...temp.map((n, i) => idx1+i));
     }
   }
   for (let y = 1; y < world.size[1]-1; y++) {
     for (let x = 1; x < world.size[0]-1; x++) {
-      let idx0 = 36*(y*world.size[0]+x);
-      let idx1 = idx0+36*((world.size[2]-1)*world.size[1]*world.size[0]);
+      let idx0 = 18*(y*world.size[0]+x);
+      let idx1 = idx0+18*((world.size[2]-1)*world.size[1]*world.size[0]);
       vertices.draw.surface.push(...temp.map((n, i) => idx0+i), ...temp.map((n, i) => idx1+i));
     }
   }
@@ -340,27 +328,27 @@ let updVert = () => {
 
 
 let updXSectVert = () => {
-  let temp = Array(36).fill(0);
+  let temp = Array(18).fill(0);
   vertices.draw.xSect = [];
   if (world.xSect[1] < 1000000) {
     if (world.xSect[0]===0) {
       for (let z = 0; z < world.size[2]; z++) {
         for (let y = 0; y < world.size[1]; y++) {
-          let idx = 36*(z*world.size[1]*world.size[0]+y*world.size[0]+world.xSect[1]);
+          let idx = 18*(z*world.size[1]*world.size[0]+y*world.size[0]+world.xSect[1]);
           vertices.draw.xSect.push(...temp.map((n, i) => idx+i));
         }
       }
     } else if (world.xSect[0]===1) {
       for (let z = 0; z < world.size[2]; z++) {
         for (let x = 0; x < world.size[0]; x++) {
-          let idx = 36*(z*world.size[1]*world.size[0]+world.xSect[1]*world.size[0]+x);
+          let idx = 18*(z*world.size[1]*world.size[0]+world.xSect[1]*world.size[0]+x);
           vertices.draw.xSect.push(...temp.map((n, i) => idx+i));
         }
       }
     } else {
       for (let y = 0; y < world.size[1]; y++) {
         for (let x = 0; x < world.size[0]; x++) {
-          let idx = 36*(world.xSect[1]*world.size[1]*world.size[0]+y*world.size[0]+x);
+          let idx = 18*(world.xSect[1]*world.size[1]*world.size[0]+y*world.size[0]+x);
           vertices.draw.xSect.push(...temp.map((n, i) => idx+i));
         }
       }
@@ -411,13 +399,12 @@ let createPrograms = () => {
 
         uniform mat3 matrix;
         uniform vec3 camera;
-        uniform vec3 forw;
         uniform float f;
 
         uniform float spacing;
 
         bool alive(uint i) {
-          uint temp = i/uint(36);
+          uint temp = i/uint(18);
           uint d1 = uint(tSize.x);
           uint y = temp/d1;
           uint x = temp-y*d1;
@@ -427,7 +414,7 @@ let createPrograms = () => {
         }
 
         vec3 idxToCoor(uint i) {
-          uint temp = i/uint(36);
+          uint temp = i/uint(18);
           uint d1 = uint(wSize.x*wSize.y);
           uint z = temp/d1;
           temp -= z*d1;
@@ -438,11 +425,11 @@ let createPrograms = () => {
         }
 
         vec4 idxToTex(uint i) {
-          uint divisor = uint(36);
+          uint divisor = uint(18);
           uint rem = i-divisor*(i/divisor);
-          float normalized = (float(rem)+.5)/36.;
+          float normalized = (float(rem)+.5)/18.;
           vec2 coor = vec2(normalized, .5);
-          vec2 tex = texture(vertices, coor).rg*256.;
+          vec2 tex = texture(vertices, coor).rg*255.;
           return vec4(tex.rg, 0, 1);
         }
 
@@ -475,12 +462,16 @@ let createPrograms = () => {
             vec3 pos = spacing*(offset-wSize/2.)+v-camera;
             vec3 shade;
             int count = int(round(dot(v, vec3(1))));
-            if (count == 0 || count == 2) {
+            if (count==0||count==2) {
               shade = vec3(255, 215, 0)/255.;
             } else {
-              shade = vec3(65, 105, 225)/255.;
+              shade = vec3(192)/255.;
             }
-            col = vec4(shade*(max(0., dot(n, forw)*.5)+.5), 1);
+            if (dot(n, normalize(pos))<0.) {
+              pos = pos+n;
+              n = -1.*n;
+            }
+            col = vec4(shade*(0.8*dot(n, normalize(pos))+0.2), 1);
             gl_Position = proj3Dto2D(pos);
           }
         }`,
@@ -568,7 +559,6 @@ let createPrograms = () => {
       tSize: gl.getUniformLocation(programs.draw, 'tSize'),
       matrix: gl.getUniformLocation(programs.draw, 'matrix'),
       camera: gl.getUniformLocation(programs.draw, 'camera'),
-      forw: gl.getUniformLocation(programs.draw, 'forw'),
       f: gl.getUniformLocation(programs.draw, 'f'),
       spacing: gl.getUniformLocation(programs.draw, 'spacing'),
 

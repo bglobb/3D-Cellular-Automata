@@ -118,7 +118,9 @@ class Camera {
     }, false);
     document.addEventListener('mousedown', (e) => {
       if (!e.target.closest('.info-box')) {
-        document.body.requestFullscreen();
+        if (!mobile) {
+          document.body.requestFullscreen();
+        }
         this.mouseDown = 1;
       }
     });
@@ -165,13 +167,12 @@ class Camera {
     this.axes[2] = [cosv2*Math.cos(this.dir[2][0]), cosv2*Math.sin(this.dir[2][0]), Math.sin(this.dir[2][1])];
   }
 
-  update(mat, cam, f, forw, force=0) {
+  update(mat, cam, f, force=0) {
     this.shift(this.keysDown[87]-this.keysDown[83], this.keysDown[68]-this.keysDown[65]);
     if (this.mouseDown||force) {
       gl.uniformMatrix3fv(mat, false, transpose(inverse(this.axes)).flat(1));
       gl.uniform3fv(cam, this.pos);
       gl.uniform1f(f, this.f);
-      gl.uniform3fv(forw, this.axes[2]);
     }
   }
 }
