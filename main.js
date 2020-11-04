@@ -33,6 +33,7 @@ onload = () => {
 
   elements.ui.ontouchmove = (e) => {
     if (e.target===elements.ui) {
+      e.preventDefault();
       let temp = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
       camera.rotate(.1*(temp[0]-mobileAng[0]), .1*(mobileAng[1]-temp[1]));
       mobileAng = temp;
@@ -41,6 +42,7 @@ onload = () => {
 
   elements.ui.ontouchstart = (e) => {
     if (e.target===elements.ui) {
+      document.body.requestFullscreen();
       mobileAng = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
     }
   }
@@ -59,6 +61,7 @@ onload = () => {
 
   elements.base.ontouchstart = (e) => {
     e.preventDefault();
+    document.body.requestFullscreen();
     let pos = elements.stick.getBoundingClientRect();
     elements.stick.style.position = 'fixed';
     elements.stick.fixedPos = [pos.x+elements.stick.offsetWidth/2, pos.y+elements.stick.offsetHeight/2];

@@ -118,6 +118,7 @@ class Camera {
     }, false);
     document.addEventListener('mousedown', (e) => {
       if (!e.target.closest('.info-box')) {
+        document.body.requestFullscreen();
         this.mouseDown = 1;
       }
     });
