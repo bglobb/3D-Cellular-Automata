@@ -42,7 +42,6 @@ onload = () => {
 
   elements.ui.ontouchstart = (e) => {
     if (e.target===elements.ui) {
-      document.body.requestFullscreen();
       mobileAng = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
     }
   }
@@ -61,7 +60,6 @@ onload = () => {
 
   elements.base.ontouchstart = (e) => {
     e.preventDefault();
-    document.body.requestFullscreen();
     let pos = elements.stick.getBoundingClientRect();
     elements.stick.style.position = 'fixed';
     elements.stick.fixedPos = [pos.x+elements.stick.offsetWidth/2, pos.y+elements.stick.offsetHeight/2];
