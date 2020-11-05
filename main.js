@@ -403,14 +403,13 @@ let createPrograms = () => {
 
         uniform float spacing;
 
-        bool alive(uint i) {
+        float alive(uint i) {
           uint temp = i/uint(18);
           uint d1 = uint(tSize.x);
           uint y = temp/d1;
           uint x = temp-y*d1;
           vec2 coor = (vec2(x, y)+.5)/tSize;
-          float state = texture(data, coor).r;
-          return state > 0.;
+          return texture(data, coor).r;
         }
 
         vec3 idxToCoor(uint i) {
@@ -454,24 +453,25 @@ let createPrograms = () => {
 
         void main() {
           vec3 offset = idxToCoor(idx);
-          if (alive(idx)) {
-            vec2 tex = idxToTex(idx).rg;
-            vec3 v = texToPos(tex.r);
-            vec3 n = texToNorm(tex.g);
+          vec2 tex = idxToTex(idx).rg;
+          vec3 v = texToPos(tex.r);
+          vec3 n = texToNorm(tex.g);
 
-            vec3 pos = spacing*(offset-wSize/2.)+v-camera;
-            vec3 shade;
-            int count = int(round(dot(v, vec3(1))));
-            if (count==0||count==2) {
-              shade = vec3(255, 215, 0)/255.;
-            } else {
-              shade = vec3(192)/255.;
-            }
-            if (dot(n, normalize(pos))<0.) {
-              pos = pos+n;
-              n = -1.*n;
-            }
-            col = vec4(shade*(0.8*dot(n, normalize(pos))+0.2), 1);
+          vec3 pos = spacing*(offset-wSize/2.)+v-camera;
+          vec3 shade;
+          int count = int(round(dot(v, vec3(1))));
+          if (count==0||count==2) {
+            shade = vec3(255, 215, 0)/255.;
+          } else {
+            shade = vec3(192)/255.;
+          }
+          if (dot(n, normalize(pos))<0.) {
+            pos = pos+n;
+            n = -1.*n;
+          }
+          float alv = alive(idx);
+          col = vec4(alv*shade*(0.8*dot(n, normalize(pos))+0.2), 1);
+          if (alv > 0.1) {
             gl_Position = proj3Dto2D(pos);
           }
         }`,
@@ -509,16 +509,13 @@ let createPrograms = () => {
         uniform vec2 tSize;
         uniform sampler2D data;
 
-        int wToT(vec3 w) {  // world coordinates to texture coordinates
+        float wToT(vec3 w) {  // world coordinates to texture coordinates
           float idx = w.z*wSize.x*wSize.y+w.y*wSize.x+w.x;
           if (w.x<0.0||w.y<0.0||w.z<0.0||w.x>=wSize.x||w.y>=wSize.y||w.z>=wSize.z) {
-            return 0;
+            return 0.;
           }
           vec4 col = texture(data, vec2((mod(idx, tSize.x)+0.5)/tSize.x, (floor(idx/tSize.x)+0.5)/tSize.y));
-          if (length(col.rgb)>0.0) {
-            return 1;
-          }
-          return 0;
+          return col.r;
         }
 
         vec3 tToW(vec2 t) {  // texture coordinates to 3D world coordinates
@@ -531,15 +528,17 @@ let createPrograms = () => {
         void main() {
           vec3 thiss = tToW(vec2(texPos.x, 1.0-texPos.y));
           int sum = 0;
-          int state = wToT(thiss);
+          float state = wToT(thiss);
           for (float i = 0.0; i < 27.0; i++) {
-            if (i != 13.0) {
-              sum += wToT(thiss+vec3(floor(i/9.0)-1.0, mod(floor(i/3.0), 3.0)-1.0, mod(i, 3.0)-1.0));
+            if (i != 13.0 && wToT(thiss+vec3(floor(i/9.0)-1.0, mod(floor(i/3.0), 3.0)-1.0, mod(i, 3.0)-1.0))==1.) {
+              sum += 1;
             }
           }
-          bool cond = state==1&&(${world.aliveCond})||state==0&&(${world.deadCond});
+          bool cond = state==1.&&(${world.surviveCond})||state<1.&&(${world.bornCond});
           if (cond) {
             fragCol = vec4(1, 0, 0, 0);
+          } else {
+            fragCol = vec4(state-.1, 0, 0, 0);
           }
         }`
     }

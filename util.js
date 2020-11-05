@@ -178,11 +178,11 @@ class Camera {
 }
 
 class World {
-  constructor(size=[50, 50, 50], rule={s: [2, 3], b: [3]}, p=.01, genRule=null) {
+  constructor(size=[50, 50, 50], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
     this.size = size;
     this.rule = rule;
     this.p = p;
-    this.genRule = genRule;
+    this.radius = radius;
 
     this.fps = 60;
     this.paused = 0;
@@ -203,8 +203,8 @@ class World {
     this.reset();
   }
 
-  updRule(val) {
-    this.rule = val;
+  updRadius(val) {
+    this.radius = val;
     this.reset();
   }
 
@@ -229,21 +229,26 @@ class World {
       }
     })();
 
-    this.aliveCond = this.deadCond = '';
+    this.surviveCond = this.bornCond = '';
     for (let i = 0; i<this.rule.s.length; i++) {
-      this.aliveCond += '||sum=='+this.rule.s[i];
+      this.surviveCond += '||sum=='+this.rule.s[i];
     }
     for (let i = 0; i<this.rule.b.length; i++) {
-      this.deadCond += '||sum=='+this.rule.b[i];
+      this.bornCond += '||sum=='+this.rule.b[i];
     }
-    this.aliveCond = this.aliveCond.slice(2);
-    this.deadCond = this.deadCond.slice(2);
+    this.surviveCond = this.surviveCond.slice(2);
+    this.bornCond = this.bornCond.slice(2);
 
     this.arrOut = new Uint8Array(this.tSize[0]*this.tSize[1]*4);
 
     this.data = [];
+    let prod = this.size[0]*this.size[1];
     for (let i = 0; i < this.tSize[0]*this.tSize[1]; i++) {
-      this.data.push(Math.random()<this.p?255:0, 0, 0, 0);
+      let z = Math.floor(i/prod);
+      let temp = i-z*prod;
+      let y = Math.floor(temp/this.size[0]);
+      let x = i%this.size[0];
+      this.data.push(Math.random()<this.p&&Math.abs(.5-x/this.size[0])<=this.radius&&Math.abs(.5-y/this.size[1])<=this.radius&&Math.abs(.5-z/this.size[2])<=this.radius?255:0, 0, 0, 0);
     }
     this.data = new Uint8Array(this.data);
 
