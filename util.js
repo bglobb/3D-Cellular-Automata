@@ -178,7 +178,7 @@ class Camera {
 }
 
 class World {
-  constructor(size=[50, 50, 50], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
+  constructor(size=[55, 55, 55], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
     this.size = size;
     this.rule = rule;
     this.p = p;
@@ -188,7 +188,6 @@ class World {
     this.paused = 0;
     this.simSpeed = 1;
     this.xSect = [0, 1000000]; // [0, 1000000] is all, [0, 1000001] is perimeter
-    this.antialias = true;
 
     this.reset();
   }
