@@ -207,6 +207,11 @@ class World {
     this.reset();
   }
 
+  updRule(val) {
+    this.rule = val;
+    this.reset();
+  }
+
   updSimSpeed(n) {
     if (n===-1 && this.simSpeed>1) {
       this.simSpeed = Math.round(this.simSpeed/2);

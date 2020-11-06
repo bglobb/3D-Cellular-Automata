@@ -1,6 +1,6 @@
 onload = () => {
   canvas = document.querySelector('canvas');
-  gl = canvas.getContext('webgl2', {antialias: !true});
+  gl = canvas.getContext('webgl2', {antialias: false});
   gl.enable(gl.DEPTH_TEST);
 
   elements = {
@@ -452,26 +452,32 @@ let createPrograms = () => {
         }
 
         void main() {
-          vec3 offset = idxToCoor(idx);
-          vec2 tex = idxToTex(idx).rg;
-          vec3 v = texToPos(tex.r);
-          vec3 n = texToNorm(tex.g);
-
-          vec3 pos = spacing*(offset-wSize/2.)+v-camera;
-          vec3 shade;
-          int count = int(round(dot(v, vec3(1))));
-          if (count==0||count==2) {
-            shade = vec3(255, 215, 0)/255.;
-          } else {
-            shade = vec3(192)/255.;
-          }
-          if (dot(n, normalize(pos))<0.) {
-            pos = pos+n;
-            n = -1.*n;
-          }
           float alv = alive(idx);
-          col = vec4(alv*shade*(0.8*dot(n, normalize(pos))+0.2), 1);
-          if (alv > 0.1) {
+          if (alv > .01) {
+            vec3 offset = idxToCoor(idx);
+            vec2 tex = idxToTex(idx).rg;
+            vec3 v = texToPos(tex.r);
+            vec3 n = texToNorm(tex.g);
+
+
+            vec3 shade;
+
+            int count = int(round(dot(v, vec3(1))));
+            if (count==0||count==2) {
+              shade = vec3(255, 215, 0)/255.;
+            } else {
+              shade = vec3(192)/255.;
+            }
+
+            v = v*alv+.5*(1.-alv);
+
+            vec3 pos = spacing*(offset-wSize/2.)+v-camera;
+            if (dot(n, normalize(pos))<0.) {
+              pos = pos+n*alv;
+              n = -1.*n;
+            }
+
+            col = vec4(shade*(0.8*dot(n, normalize(pos))+0.2), 1);
             gl_Position = proj3Dto2D(pos);
           }
         }`,
@@ -538,7 +544,7 @@ let createPrograms = () => {
           if (cond) {
             fragCol = vec4(1, 0, 0, 0);
           } else {
-            fragCol = vec4(state-.1, 0, 0, 0);
+            fragCol = vec4(state-.2, 0, 0, 0);
           }
         }`
     }
