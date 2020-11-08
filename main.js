@@ -501,7 +501,7 @@ let createPrograms = () => {
         out vec2 texPos;
 
         void main() {
-          texPos = 0.5*(vert*vec2(1, -1)+1.0);
+          texPos = 0.5*(vert+1.0);
           gl_Position = vec4(vert, 0, 1);
         }`,
       fragment: `#version 300 es
@@ -515,7 +515,7 @@ let createPrograms = () => {
         uniform vec2 tSize;
         uniform sampler2D data;
 
-        float wToT(vec3 w) {  // world coordinates to texture coordinates
+        float wToT(vec3 w) {  // world coordinates to texture
           float idx = w.z*wSize.x*wSize.y+w.y*wSize.x+w.x;
           if (w.x<0.0||w.y<0.0||w.z<0.0||w.x>=wSize.x||w.y>=wSize.y||w.z>=wSize.z) {
             return 0.;
@@ -528,17 +528,15 @@ let createPrograms = () => {
           float x = floor(t.x*tSize.x);
           float y = floor(t.y*tSize.y);
           float idx = y*tSize.x+x;
-          return vec3(mod(idx, wSize.x), mod(floor(idx/wSize.x), wSize.y), floor(idx/(wSize.x*wSize.y)));
+          return round(vec3(mod(idx, wSize.x), mod(floor(idx/wSize.x), wSize.y), floor(idx/(wSize.x*wSize.y))));
         }
 
         void main() {
-          vec3 thiss = tToW(vec2(texPos.x, 1.0-texPos.y));
+          vec3 thiss = tToW(vec2(texPos.x, texPos.y));
           int sum = 0;
           float state = wToT(thiss);
-          for (float i = 0.0; i < 27.0; i++) {
-            if (i != 13.0 && wToT(thiss+vec3(floor(i/9.0)-1.0, mod(floor(i/3.0), 3.0)-1.0, mod(i, 3.0)-1.0))==1.) {
-              sum += 1;
-            }
+          for (int i = 0; i < 27; i++) {
+            sum += int(i != 13 && wToT(thiss+vec3(i/9-1, mod(float(i/3), 3.0)-1., mod(float(i), 3.)-1.))==1.);
           }
           bool cond = state==1.&&(${world.surviveCond})||state<1.&&(${world.bornCond});
           if (cond) {

@@ -19,7 +19,7 @@
         </div>
         <div id="init" class="info-box">
           <form>
-            Dimensions: <input type="number" value="55" step="1" pattern="\d+" placeholder="depth" class="dim">x<input type="number" value="55" step="1" pattern="\d+" placeholder="width" class="dim">x<input type="number" value="55" step="1" pattern="\d+" placeholder="height" class="dim"><input type="submit" value="Go" onclick="let vals = Array.from(document.querySelectorAll('.dim')).map(n => 1*n.value); if (vals[0]*vals[1]*vals[2]>3375000) {alert('Error!\nThe product of the dimensions is greater than 150 cubed.');} else if (this.parentElement.checkValidity()) {stop = 1; world.updSize(vals); setTimeout(() => {stop = 0; setup();}, 10+1000/world.simSpeed);}">
+            Dimensions: <input type="number" value="60" step="1" pattern="\d+" placeholder="depth" class="dim">x<input type="number" value="60" step="1" pattern="\d+" placeholder="width" class="dim">x<input type="number" value="60" step="1" pattern="\d+" placeholder="height" class="dim"><input type="submit" value="Go" onclick="let vals = Array.from(document.querySelectorAll('.dim')).map(n => 1*n.value); if (vals[0]*vals[1]*vals[2]>3375000) {alert('Error!\nThe product of the dimensions is greater than 150 cubed.');} else if (this.parentElement.checkValidity()) {stop = 1; world.updSize(vals); setTimeout(() => {stop = 0; setup();}, 10+1000/world.simSpeed);}">
           </form>
           Density: <input type="range" value="1" min="0" max="1" step=".001" oninput="this.nextElementSibling.innerText = (1*this.value).toFixed(3); world.updP(1*this.value); updTex();"> <span>1.000</span>
           <br>

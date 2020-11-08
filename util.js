@@ -178,7 +178,7 @@ class Camera {
 }
 
 class World {
-  constructor(size=[55, 55, 55], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
+  constructor(size=[60, 60, 60], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
     this.size = size;
     this.rule = rule;
     this.p = p;
@@ -252,7 +252,7 @@ class World {
       let temp = i-z*prod;
       let y = Math.floor(temp/this.size[0]);
       let x = i%this.size[0];
-      this.data.push(Math.random()<this.p&&Math.abs(.5-x/this.size[0])<=this.radius&&Math.abs(.5-y/this.size[1])<=this.radius&&Math.abs(.5-z/this.size[2])<=this.radius?255:0, 0, 0, 0);
+      this.data.push(Math.random()<this.p&&Math.abs(.5-(x+.5)/this.size[0])<=this.radius&&Math.abs(.5-(y+.5)/this.size[1])<=this.radius&&Math.abs(.5-(z+.5)/this.size[2])<=this.radius?255:0, 0, 0, 0);
     }
     this.data = new Uint8Array(this.data);
 
