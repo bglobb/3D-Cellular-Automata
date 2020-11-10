@@ -142,11 +142,7 @@ onload = () => {
 let setup = (newBuffers=true) => {
   createPrograms();
 
-  onresize = () => {
-    gl.useProgram(programs.draw);
-    resize();
-  };
-  dispatchEvent(new Event('resize'));
+  gl.useProgram(programs.draw);
 
   if (newBuffers) {
     updTex();
@@ -159,8 +155,8 @@ let setup = (newBuffers=true) => {
     addVertices(vertices.draw.all, locations.draw.idx, true, buffers.draw.all, 1, gl.UNSIGNED_INT, 0, 0);
     addVertices(vertices.draw.surface, locations.draw.idx, true, buffers.draw.surface, 1, gl.UNSIGNED_INT, 0, 0);
   }
-  gl.uniform3fv(locations.draw.wSize, world.size);
-  gl.uniform2fv(locations.draw.tSize, world.tSize);
+  gl.uniform3iv(locations.draw.wSize, world.size);
+  gl.uniform2iv(locations.draw.tSize, world.tSize);
   gl.uniform1f(locations.draw.spacing, 1);
 
   gl.useProgram(programs.compute);
@@ -185,7 +181,7 @@ let loop = () => {
     camera.fps = Math.round(1000/(tn-t));
     elements.fps.innerText = camera.fps;
     t = tn;
-    // camera.speedFactor = 60/fps;
+    camera.speedFactor = 60/camera.fps;
     requestAnimationFrame(loop);
   }
 };
@@ -248,7 +244,7 @@ let compute = (iter=2) => {
 
 
 let bindDrawAttribs = () => {
-  gl.viewport(0, 0, canvas.width, canvas.height);
+  resize();
   gl.useProgram(programs.draw);
   if (world.xSect[1]===1000000) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.all);
@@ -392,8 +388,8 @@ let createPrograms = () => {
         uniform sampler2D vertices;
         uniform sampler2D data;
 
-        uniform vec3 wSize;
-        uniform vec2 tSize;
+        uniform ivec3 wSize;
+        uniform ivec2 tSize;
 
         uniform float aspect;
 
@@ -408,8 +404,7 @@ let createPrograms = () => {
           uint d1 = uint(tSize.x);
           uint y = temp/d1;
           uint x = temp-y*d1;
-          vec2 coor = (vec2(x, y)+.5)/tSize;
-          return texture(data, coor).r;
+          return texelFetch(data, ivec2(x, y), 0).r;
         }
 
         vec3 idxToCoor(uint i) {
@@ -423,13 +418,9 @@ let createPrograms = () => {
           return vec3(x, y, z);
         }
 
-        vec4 idxToTex(uint i) {
+        vec2 idxToTex(uint i) {
           uint divisor = uint(18);
-          uint rem = i-divisor*(i/divisor);
-          float normalized = (float(rem)+.5)/18.;
-          vec2 coor = vec2(normalized, .5);
-          vec2 tex = texture(vertices, coor).rg*255.;
-          return vec4(tex.rg, 0, 1);
+          return texelFetch(vertices, ivec2(int(i-divisor*(i/divisor)), 0), 0).rg*255.;
         }
 
         vec3 texToPos(float r) {
@@ -455,10 +446,9 @@ let createPrograms = () => {
           float alv = alive(idx);
           if (alv > .01) {
             vec3 offset = idxToCoor(idx);
-            vec2 tex = idxToTex(idx).rg;
+            vec2 tex = idxToTex(idx);
             vec3 v = texToPos(tex.r);
             vec3 n = texToNorm(tex.g);
-
 
             vec3 shade;
 
@@ -471,7 +461,7 @@ let createPrograms = () => {
 
             v = v*alv+.5*(1.-alv);
 
-            vec3 pos = spacing*(offset-wSize/2.)+v-camera;
+            vec3 pos = spacing*(offset-vec3(wSize/2))+v-camera;
             if (dot(n, normalize(pos))<0.) {
               pos = pos+n*alv;
               n = -1.*n;
@@ -501,7 +491,7 @@ let createPrograms = () => {
         out vec2 texPos;
 
         void main() {
-          texPos = 0.5*(vert+1.0);
+          texPos = .5*(vert+1.);
           gl_Position = vec4(vert, 0, 1);
         }`,
       fragment: `#version 300 es
@@ -516,33 +506,33 @@ let createPrograms = () => {
         uniform sampler2D data;
 
         float wToT(vec3 w) {  // world coordinates to texture
-          float idx = w.z*wSize.x*wSize.y+w.y*wSize.x+w.x;
-          if (w.x<0.0||w.y<0.0||w.z<0.0||w.x>=wSize.x||w.y>=wSize.y||w.z>=wSize.z) {
+          if (wSize.x==1.&&w.x!=0.||wSize.y==1.&&w.y!=0.||wSize.z==1.&&w.z!=0.) {
             return 0.;
           }
-          vec4 col = texture(data, vec2((mod(idx, tSize.x)+0.5)/tSize.x, (floor(idx/tSize.x)+0.5)/tSize.y));
-          return col.r;
+          vec3 w2 = mod(w, wSize);
+          float idx = w2.z*wSize.x*wSize.y+w2.y*wSize.x+w2.x;
+          return texelFetch(data, ivec2(mod(idx, tSize.x), floor(idx/tSize.x)), 0).r;
         }
 
         vec3 tToW(vec2 t) {  // texture coordinates to 3D world coordinates
           float x = floor(t.x*tSize.x);
           float y = floor(t.y*tSize.y);
           float idx = y*tSize.x+x;
-          return round(vec3(mod(idx, wSize.x), mod(floor(idx/wSize.x), wSize.y), floor(idx/(wSize.x*wSize.y))));
+          return vec3(mod(idx, wSize.x), mod(floor(idx/wSize.x), wSize.y), floor(idx/(wSize.x*wSize.y)));
         }
 
         void main() {
-          vec3 thiss = tToW(vec2(texPos.x, texPos.y));
+          vec3 thiss = tToW(texPos);
           int sum = 0;
           float state = wToT(thiss);
           for (int i = 0; i < 27; i++) {
-            sum += int(i != 13 && wToT(thiss+vec3(i/9-1, mod(float(i/3), 3.0)-1., mod(float(i), 3.)-1.))==1.);
+            sum += int(i != 13 && wToT(thiss+vec3(i/9-1, mod(float(i/3), 3.0)-1., mod(float(i), 3.)-1.))>.98);
           }
-          bool cond = state==1.&&(${world.surviveCond})||state<1.&&(${world.bornCond});
+          bool cond = state>.98&&(${world.surviveCond})||state<.99&&(${world.bornCond});
           if (cond) {
-            fragCol = vec4(1, 0, 0, 0);
+            fragCol = vec4(1, 0, 0, 1);
           } else {
-            fragCol = vec4(state-.2, 0, 0, 0);
+            fragCol = vec4(state-.2, 0, 0, 1);
           }
         }`
     }

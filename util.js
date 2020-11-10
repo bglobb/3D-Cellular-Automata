@@ -56,14 +56,15 @@ let tex = (data, width, height) => {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  // gl.generateMipmap(gl.TEXTURE_2D)
   return tex;
 }
 
-let resize = () => {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
+let resize = (x=innerWidth, y=innerHeight) => {
+  canvas.width = x;
+  canvas.height = y;
   gl.viewport(0, 0, canvas.width, canvas.height);
 }
 
@@ -178,7 +179,7 @@ class Camera {
 }
 
 class World {
-  constructor(size=[60, 60, 60], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
+  constructor(size=[50, 50, 50], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
     this.size = size;
     this.rule = rule;
     this.p = p;
@@ -252,7 +253,7 @@ class World {
       let temp = i-z*prod;
       let y = Math.floor(temp/this.size[0]);
       let x = i%this.size[0];
-      this.data.push(Math.random()<this.p&&Math.abs(.5-(x+.5)/this.size[0])<=this.radius&&Math.abs(.5-(y+.5)/this.size[1])<=this.radius&&Math.abs(.5-(z+.5)/this.size[2])<=this.radius?255:0, 0, 0, 0);
+      this.data.push(Math.random()<this.p&&Math.abs(.5-(x+.5)/this.size[0])<=this.radius&&Math.abs(.5-(y+.5)/this.size[1])<=this.radius&&Math.abs(.5-(z+.5)/this.size[2])<=this.radius?255:0, 0, 0, 1);
     }
     this.data = new Uint8Array(this.data);
 
