@@ -25,22 +25,22 @@ input[type=number] {
 }
 
 #base {
-  width: 150px;
-  height: 150px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   position: absolute;
   bottom: 0;
 }
 
 #stick {
-  width: 75px;
-  height: 75px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background-color: rgb(31, 255, 31);
   position: relative;
   left: 50%;
   top: 50%;
-  margin: -37.5px 0 0 -37.5px;
+  margin: -15px 0 0 -15px;
 }
 
 .info-box {
@@ -51,4 +51,15 @@ input[type=number] {
 
 button {
   font-family: "Lucida Console", Courier, monospace;
+}
+
+#toggle {
+  float: right;
+}
+
+@media screen and (max-width: 800px) {
+  .params {
+    transform-origin: bottom right;
+    transform: scale(.75);
+  }
 }

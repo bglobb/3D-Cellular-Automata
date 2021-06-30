@@ -2,14 +2,15 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>3D Cellular Automata</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="master.css">
     <script src="util.js" charset="utf-8"></script>
   </head>
   <body>
     <div class="ui">
       FPS: <span id="fps">60</span>
-      <button type="button" name="button" onclick="let es = Array.from(document.querySelectorAll('.info-box')); es.forEach(e => {if (e.id!=='base') {es[es.length-1].style.display==='none'?e.style.display = 'block':e.style.display = 'none';}});" style="float: right;">Toggle Menu</button>
+      <button id="toggle" type="button" name="button" onclick="let p = document.querySelector('.params'); p.style.display = getComputedStyle(p).display === 'none'?'block':'none';">Toggle Menu</button>
       <div id="base" class="info-box"><div id="stick"></div></div>
       <div class="params">
         <div id="info" class="info-box">

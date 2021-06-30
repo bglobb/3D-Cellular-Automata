@@ -33,11 +33,17 @@ onload = () => {
 
   mobileShift = mobileAng = mobileRot = [0, 0];
 
+  elements.ui.ontouchstart = (e) => {
+    if (e.target === elements.ui) {
+      document.body.requestFullscreen();
+    }
+  }
+
   elements.ui.ontouchmove = (e) => {
-    if (e.target===elements.ui) {
+    if (e.target === elements.ui) {
       e.preventDefault();
       let temp = [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
-      camera.rotate(.1*(temp[0]-mobileAng[0]), .1*(mobileAng[1]-temp[1]));
+      camera.rotate(.3*(temp[0]-mobileAng[0]), .3*(mobileAng[1]-temp[1]));
       mobileAng = temp;
     }
   }
@@ -57,12 +63,11 @@ onload = () => {
     elements.stick.style.left = elements.stick.fixedPos[0]+r*(x-elements.stick.fixedPos[0])+'px';
     elements.stick.style.top = elements.stick.fixedPos[1]+r*(y-elements.stick.fixedPos[1])+'px';
 
-    mobileShift = [-r*(y-elements.stick.fixedPos[1])/maxDist, r*(x-elements.stick.fixedPos[0])/maxDist];
+    mobileShift = [-2*r*(y-elements.stick.fixedPos[1])/maxDist, 2*r*(x-elements.stick.fixedPos[0])/maxDist];
   }
 
   elements.base.ontouchstart = (e) => {
     e.preventDefault();
-    document.body.requestFullscreen();
     let pos = elements.stick.getBoundingClientRect();
     elements.stick.style.position = 'fixed';
     elements.stick.fixedPos = [pos.x+elements.stick.offsetWidth/2, pos.y+elements.stick.offsetHeight/2];
