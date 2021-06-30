@@ -62,6 +62,7 @@ onload = () => {
 
   elements.base.ontouchstart = (e) => {
     e.preventDefault();
+    document.body.requestFullscreen();
     let pos = elements.stick.getBoundingClientRect();
     elements.stick.style.position = 'fixed';
     elements.stick.fixedPos = [pos.x+elements.stick.offsetWidth/2, pos.y+elements.stick.offsetHeight/2];
