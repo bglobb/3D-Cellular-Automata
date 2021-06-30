@@ -123,9 +123,7 @@ class Camera {
     }, false);
     document.addEventListener('mousedown', (e) => {
       if (!e.target.closest('.info-box')) {
-        if (!mobile) {
-          document.body.requestFullscreen();
-        }
+        document.body.requestFullscreen();
         this.mouseDown = 1;
       }
     });
