@@ -66,6 +66,10 @@ let resize = (x=innerWidth, y=innerHeight) => {
   canvas.width = x;
   canvas.height = y;
   gl.viewport(0, 0, canvas.width, canvas.height);
+  let a = canvas.width/canvas.height;
+  let coordMult = a<1?[1/a, 1]:[1, a];
+  gl.useProgram(programs.draw);
+  gl.uniform2fv(locations.draw.coordMult, coordMult);
 }
 
 let inverse = (mat3) => {
@@ -98,7 +102,7 @@ let transpose = (mat3) => {
 }
 
 class Camera {
-  constructor(pos=[(-Math.max(world.size[1], world.size[2])-world.size[0])/2, 0, 0], axes=[[0, -1, 0], [0, 0, -1], [1, 0, 0]], dir=[[-Math.PI/2, 0], [0, -Math.PI/2], [0, 0]], f=1, rotSpeed=.02, speed=.5) {
+  constructor(pos=[(-Math.max(world.size[1], world.size[2])-world.size[0])/2, 0, 0], axes=[[0, -1, 0], [0, 0, -1], [1, 0, 0]], dir=[[-Math.PI/2, 0], [0, -Math.PI/2], [0, 0]], f=.01, rotSpeed=.02, speed=.5) {
     this.pos = pos;
     this.axes = axes;
     this.dir = dir;
@@ -179,7 +183,7 @@ class Camera {
 }
 
 class World {
-  constructor(size=[50, 50, 50], rule={s: [2, 3], b: [3]}, p=1, radius=.25) {
+  constructor(size=[1, 500, 500], rule={s: [2, 3], b: [3]}, p=1, radius=.498) {
     this.size = size;
     this.rule = rule;
     this.p = p;
@@ -187,7 +191,7 @@ class World {
 
     this.fps = 60;
     this.paused = 0;
-    this.simSpeed = 1;
+    this.simSpeed = 32;
     this.xSect = [0, 1000000]; // [0, 1000000] is all, [0, 1000001] is perimeter
 
     this.reset();

@@ -1,6 +1,6 @@
 onload = () => {
   canvas = document.querySelector('canvas');
-  gl = canvas.getContext('webgl2', {antialias: false});
+  gl = canvas.getContext('webgl2', {antialias: !false});
   gl.enable(gl.DEPTH_TEST);
 
   elements = {
@@ -140,6 +140,7 @@ onload = () => {
 
 
 let setup = (newBuffers=true) => {
+
   createPrograms();
 
   gl.useProgram(programs.draw);
@@ -189,6 +190,7 @@ let loop = () => {
 
 
 let draw = () => {
+  resize();
   bindDrawAttribs();
 
   gl.activeTexture(gl.TEXTURE0);
@@ -201,7 +203,6 @@ let draw = () => {
   camera.shift(mobileShift[0], mobileShift[1]);
   camera.update(locations.draw.matrix, locations.draw.camera, locations.draw.f, 1);
   gl.uniform1f(locations.draw.spacing, 1*elements.spacing.value);
-  gl.uniform1f(locations.draw.aspect, canvas.width/canvas.height);
 
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -244,14 +245,16 @@ let compute = (iter=2) => {
 
 
 let bindDrawAttribs = () => {
-  resize();
   gl.useProgram(programs.draw);
   if (world.xSect[1]===1000000) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.all);
+    gl.uniform1f(locations.draw.xSect, 0);
   } else if (world.xSect[1]===1000001) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.surface);
+    gl.uniform1f(locations.draw.xSect, 1);
   } else {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.xSect);
+    gl.uniform1f(locations.draw.xSect, 1);
   }
   gl.vertexAttribIPointer(
     locations.draw.idx,
@@ -294,7 +297,7 @@ let updTex = () => {
 
 
 let updVert = () => {
-  vertices.draw.all = new Uint32Array([...Array(18*world.size[0]*world.size[1]*world.size[2]).keys()]);
+  vertices.draw.all = new Uint8Array(18*world.size[0]*world.size[1]*world.size[2]);
   vertices.draw.surface = [];
   let temp = Array(18).fill(0);
   for (let z = 0; z < world.size[2]; z++) {
@@ -391,13 +394,13 @@ let createPrograms = () => {
         uniform ivec3 wSize;
         uniform ivec2 tSize;
 
-        uniform float aspect;
-
+        uniform vec2 coordMult;
         uniform mat3 matrix;
         uniform vec3 camera;
         uniform float f;
 
         uniform float spacing;
+        uniform bool xSect;
 
         float alive(uint i) {
           uint temp = i/uint(18);
@@ -438,15 +441,20 @@ let createPrograms = () => {
 
         vec4 proj3Dto2D(vec3 vp) {
           vec3 new = vp*matrix;
-          float p = f/(new.z+f);
-          return vec4(p*new.x, p*new.y*-aspect, (new.z-1.)*.001-1., 1); // If returnVal.z not in [-1,1], vertex is clipped. Given this, I did the operations to clip if z<1.
+          return vec4(vec2(new.x, -new.y)*coordMult, (new.z-f)-new.z, new.z);
         }
 
         void main() {
-          float alv = alive(idx);
+          uint id;
+          if (xSect) {
+            id = idx;
+          } else {
+            id = uint(gl_VertexID);
+          }
+          float alv = alive(id);
           if (alv > .01) {
-            vec3 offset = idxToCoor(idx);
-            vec2 tex = idxToTex(idx);
+            vec3 offset = idxToCoor(id);
+            vec2 tex = idxToTex(id);
             vec3 v = texToPos(tex.r);
             vec3 n = texToNorm(tex.g);
 
@@ -550,10 +558,12 @@ let createPrograms = () => {
       data: gl.getUniformLocation(programs.draw, 'data'),
       wSize: gl.getUniformLocation(programs.draw, 'wSize'),
       tSize: gl.getUniformLocation(programs.draw, 'tSize'),
+      coordMult: gl.getUniformLocation(programs.draw, 'coordMult'),
       matrix: gl.getUniformLocation(programs.draw, 'matrix'),
       camera: gl.getUniformLocation(programs.draw, 'camera'),
       f: gl.getUniformLocation(programs.draw, 'f'),
       spacing: gl.getUniformLocation(programs.draw, 'spacing'),
+      xSect: gl.getUniformLocation(programs.draw, 'xSect'),
 
       idx: gl.getAttribLocation(programs.draw, 'idx')
     },
