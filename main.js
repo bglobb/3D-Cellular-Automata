@@ -153,7 +153,7 @@ let setup = (newBuffers=true) => {
   }
 
   if (newBuffers) {
-    addVertices(vertices.draw.all, locations.draw.idx, true, buffers.draw.all, 1, gl.UNSIGNED_INT, 0, 0);
+    addVertices(vertices.draw.all, locations.draw.idx, true, buffers.draw.all, 1, gl.UNSIGNED_BYTE, 0, 0);
     addVertices(vertices.draw.surface, locations.draw.idx, true, buffers.draw.surface, 1, gl.UNSIGNED_INT, 0, 0);
   }
   gl.uniform3iv(locations.draw.wSize, world.size);
@@ -246,7 +246,9 @@ let compute = (iter=2) => {
 
 let bindDrawAttribs = () => {
   gl.useProgram(programs.draw);
+  let type = gl.UNSIGNED_INT;
   if (world.xSect[1]===1000000) {
+    type = gl.UNSIGNED_BYTE;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.draw.all);
     gl.uniform1f(locations.draw.xSect, 0);
   } else if (world.xSect[1]===1000001) {
@@ -259,7 +261,7 @@ let bindDrawAttribs = () => {
   gl.vertexAttribIPointer(
     locations.draw.idx,
     1,  // size
-    gl.UNSIGNED_INT,
+    type,
     0,  // stride
     0  // offset
   );
